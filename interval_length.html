@@ -1,0 +1,60 @@
+<!--
+  Copyright 2017, Bart Butenaers
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<script type="text/javascript">
+    RED.nodes.registerType('interval-length',{
+        category: 'function',
+        color: '#a6bbcf',
+        defaults: {
+            format: {value:"mills"},
+            bytopic: {value:false},
+            name: {value:""}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "length.png",
+        label: function() {
+            return this.name||"Interval length";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="interval-length">
+    <div class="form-row" id="node-set-pwm">
+        <label for="node-input-format"><i class="fa fa-font"></i> Format</label>
+        <select id="node-input-format">
+            <option value="mills">Milliseconds</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-bytopic" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-bytopic" style="width:70%;">Topic dependent</label>
+    </div>
+    <br/>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="interval-length">
+    <p>A Node Red node to measure the interval length between messages.</p>
+    <p><strong>Format:</strong><br/>
+    The interval length can be obtained in a number of different formats:
+    <ul>
+        <li><code>mills</code> Milliseconds</li>
+    </ul></p>
+    <p><strong>Topic dependent:</strong><br/>
+    When selected, a separte resending process will be started for every topic.  Messages with empty topic will be ignored.</p>
+</script>
+
