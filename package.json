@@ -1,0 +1,27 @@
+{
+    "name"         : "node-red-contrib-interval-length",
+    "version"      : "0.0.1",
+    "description"  : "A Node Red node to measure the interval length between successive messages",
+    "dependencies": {
+       "pretty-ms": "3.0.0",
+       "parse-ms": "1.0.1"
+    },
+    "author": {
+        "name": "Bart Butenaers"
+    },
+    "license": "Apache-2.0",
+    "keywords": [ "node-red", "interval", "length", "period", "time", "measure" ],
+    "bugs": {
+        "url": "https://github.com/bartbutenaers/node-red-contrib-interval-length/issues"
+    },
+    "homepage": "https://github.com/bartbutenaers/node-red-contrib-interval-length",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bartbutenaers/node-red-contrib-interval-length.git"
+    },
+    "node-red"     : {
+        "nodes": {
+            "interval-length": "interval_length.js"
+        }
+    }
+}
