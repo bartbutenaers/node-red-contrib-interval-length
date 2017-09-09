@@ -17,6 +17,10 @@
         defaults: {
             format: {value:"mills"},
             bytopic: {value:false},
+            minimum: {value:"", validator: function(v) { return !v || !isNaN(v)}},
+            maximum: {value:"", validator: function(v) { return !v || !isNaN(v)}},
+            window: {value:""},
+            timeout: {value:false},
             name: {value:""}
         },
         inputs:1,
@@ -30,15 +34,37 @@
 
 <script type="text/x-red" data-template-name="interval-length">
     <div class="form-row" id="node-set-pwm">
-        <label for="node-input-format"><i class="fa fa-font"></i> Format</label>
+        <label for="node-input-format"><i class="fa fa-envelope"></i> Format</label>
         <select id="node-input-format">
             <option value="mills">Milliseconds</option>
+            <option value="human">Human readable</option>
+            <option value="json">JSON object</option>
         </select>
     </div>
     <div class="form-row">
         <label>&nbsp;</label>
         <input type="checkbox" id="node-input-bytopic" style="display: inline-block; width: auto; vertical-align: top;">
         <label for="node-input-bytopic" style="width:70%;">Topic dependent</label>
+    </div>
+    <div class="form-row">
+        <label for="node-input-minimum"><i class="fa fa-level-up"></i> Minimum</label>
+        <input type="number" id="node-input-minimum">
+        <label for="node-input-minimum"> msec</label>
+    </div>
+    <div class="form-row">
+        <label for="node-input-maximum"><i class="fa fa-level-down"></i> Maximum</label>
+        <input type="number" id="node-input-maximum">
+        <label for="node-input-maximum"> msec</label>
+    </div>
+    <div class="form-row">
+        <label for="node-input-window"><i class="fa fa-level-down"></i> Window</label>
+        <input type="number" id="node-input-window">
+        <label for="node-input-window"> msec</label>
+    </div>
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-timeout" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-timeout" style="width:70%;">Create message at (window) timeout</label>
     </div>
     <br/>
     <div class="form-row">
@@ -52,9 +78,18 @@
     <p><strong>Format:</strong><br/>
     The interval length can be obtained in a number of different formats:
     <ul>
-        <li><code>mills</code> Milliseconds</li>
+        <li><code>Milliseconds</code> milliseconds as a number</li>
+        <li><code>Human readable</code> milliseconds formatted like '1d:7h:0m:0s'</li>
+        <li><code>JSON object</code> milliseconds formatted like { minutes: 23, seconds: 20, milliseconds: 1 } </li>
     </ul></p>
     <p><strong>Topic dependent:</strong><br/>
-    When selected, a separte resending process will be started for every topic.  Messages with empty topic will be ignored.</p>
+    When selected, the intervals will be measured for each topic separately.</p>
+    <p><strong>Minimum:</strong><br/>
+    When X milliseconds are specified, intervals shorter than X milliseconds length will be ignored (i.e. won't result in an output message).</p>
+    <p><strong>Maximum:</strong><br/>
+    When Y milliseconds are specified, intervals longer than Y milliseconds length will be ignored (i.e. won't result in an output message).</p>
+    <p><strong>Window:</strong><br/>
+    When Z milliseconds are specified, all intervals within this time window will be accumulated (and send as a single output message).</p>
+    <p><strong>Create msg at timeout:</strong><br/>
+    When selected, an extra message (containing a '0' interval) will be generated at the end of the window (during which no input message has arrived).</p>
 </script>
-
