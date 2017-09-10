@@ -43,18 +43,79 @@
             }
 
             node.send(msg);
+            
+            // As soon as milliseconds have been output, they should be discarded for the next measurement
+            interval.millisecs = 0;
         }
     }
 
     function IntervalLengthNode(config) {
         RED.nodes.createNode(this,config);
-        this.format    = config.format;
-        this.byTopic   = config.bytopic; 
-        this.minimum   = config.minimum;
-        this.maximum   = config.maximum;
-        this.window    = config.window;
-        this.timeout   = config.timeout;
-        this.intervals = new Map();
+        this.format        = config.format;
+        this.byTopic       = config.bytopic; 
+        this.minimum       = config.minimum;
+        this.maximum       = config.maximum;
+        this.window        = config.window;
+        this.timeout       = config.timeout;
+        this.startup       = config.startup;
+        this.intervals     = new Map();
+        
+        // Store the startup hrtime, only when 'startup' is being requested by the user
+        if (this.startup == true) {
+            this.startupHrTime = process.hrtime();
+        }
+        
+        if (this.minimum) {
+            // Convert the 'minimum' value to milliseconds (based on the selected time unit)
+            switch(config.minimumunit) {
+                case "secs":
+                    this.minimum *= 1000;
+                    break;
+                case "mins":
+                    this.minimum *= 1000 * 60;
+                    break;
+                case "hours":
+                    this.minimum *= 1000 * 60 * 60;
+                    break;            
+                default: // "msecs" so no conversion needed
+            }
+        }
+        
+        if (this.maximum) {
+            // Convert the 'maximum' value to milliseconds (based on the selected time unit)
+            switch(config.maximumunit) {
+                case "secs":
+                    this.maximum *= 1000;
+                    break;
+                case "mins":
+                    this.maximum *= 1000 * 60;
+                    break;
+                case "hours":
+                    this.maximum *= 1000 * 60 * 60;
+                    break;            
+                default: // "msecs" so no conversion needed
+            }  
+        }            
+
+        if(this.minimum && this.maximum && this.minimum > this.maximum) {
+            this.error("Min > max");        
+        }
+
+        if (this.window) {
+            // Convert the 'window' value to milliseconds (based on the selected time unit)
+            switch(config.windowunit) {
+                case "secs":
+                    this.window *= 1000;
+                    break;
+                case "mins":
+                    this.window *= 1000 * 60;
+                    break;
+                case "hours":
+                    this.window *= 1000 * 60 * 60;
+                    break;            
+                default: // "msecs" so no conversion needed
+            }
+        }
         
         var node = this;
 
@@ -68,6 +129,12 @@
             if (!interval) {
                 interval = { millisecs: 0, hrtime: null, timer: null };
                 node.intervals.set(topic, interval);
+            }
+            
+            if (!interval.hrtime && node.startupHrTime) {
+                // When no hrtime is already available (which means this is the first msg that arrives), we will use the 
+                // startup time of this node (if 'startup' has been requested by the user).
+                interval.hrtime = node.startupHrTime;
             }
             
             if (interval.hrtime) {
@@ -87,30 +154,25 @@
                 } 
                 else {
                     interval.millisecs = milliSeconds;
+                    
+                    // send the (unaccumulated) interval length 
+                    sendMsg(node, msg, interval);
                 }
-            }
+            }   
                         
-            if ( node.window > 0 ) {
-                if ( !interval.timer) { 
-                    // Start a new timer, for the specified time window.
-                    // The timer id will be stored, so it can be found when a new msg arrives at the input.
-                    interval.timer = setInterval(function() {        
-                        // At the end of the window, we will send the accumulated interval. 
-                        // When nothing received during the window (sum = 0), nothing will be send unless a timeout is specified. 
-                        if (interval.millisecs > 0 || node.timeout == true) { 
-                            sendMsg(node, msg, interval);           
-                        } 
+            if ( node.window > 0 && !interval.timer) { 
+                // Start a new timer, for the specified time window.
+                // The timer id will be stored, so it can be found when a new msg arrives at the input.
+                interval.timer = setInterval(function() {        
+                    // At the end of the window, we will send the accumulated interval. 
+                    // When nothing received during the window (sum = 0), nothing will be send unless a timeout is specified. 
+                    if (interval.millisecs > 0 || node.timeout == true) { 
+                        sendMsg(node, msg, interval);           
+                    } 
 
-                        clearInterval(interval.timer);
-                        interval.timer = null;
-                        interval.millisecs = 0;
-                        
-                    }, node.window); 
-                }
-            } 
-            else {
-                // send the (unaccumulated) interval length 
-                sendMsg(node, msg, interval);
+                    clearInterval(interval.timer);
+                    interval.timer = null;                    
+                }, node.window); 
             }
             
             // Store the time when this message has arrived 
