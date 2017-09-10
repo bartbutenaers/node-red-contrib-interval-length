@@ -19,8 +19,12 @@
             bytopic: {value:false},
             minimum: {value:"", validator: function(v) { return !v || !isNaN(v)}},
             maximum: {value:"", validator: function(v) { return !v || !isNaN(v)}},
-            window: {value:""},
+            window:  {value:""},
             timeout: {value:false},
+            minimumunit: {value:"msecs"},
+            maximumunit: {value:"msecs"},
+            windowunit: {value:"msecs"},
+            startup: {value:false},
             name: {value:""}
         },
         inputs:1,
@@ -48,23 +52,43 @@
     </div>
     <div class="form-row">
         <label for="node-input-minimum"><i class="fa fa-level-up"></i> Minimum</label>
-        <input type="number" id="node-input-minimum">
-        <label for="node-input-minimum"> msec</label>
+        <input type="number" id="node-input-minimum" style="width:180px;">
+        <select id="node-input-minimumunit" style="width:120px;">
+            <option value="msecs">MilliSeconds</option>
+            <option value="secs">Seconds</option>
+            <option value="mins">Minutes</option>
+            <option value="hours">Hours</option>
+        </select>
     </div>
     <div class="form-row">
         <label for="node-input-maximum"><i class="fa fa-level-down"></i> Maximum</label>
-        <input type="number" id="node-input-maximum">
-        <label for="node-input-maximum"> msec</label>
+        <input type="number" id="node-input-maximum" style="width:180px;">
+        <select id="node-input-maximumunit" style="width:120px;">
+            <option value="msecs">MilliSeconds</option>
+            <option value="secs">Seconds</option>
+            <option value="mins">Minutes</option>
+            <option value="hours">Hours</option>
+        </select>
     </div>
     <div class="form-row">
         <label for="node-input-window"><i class="fa fa-level-down"></i> Window</label>
-        <input type="number" id="node-input-window">
-        <label for="node-input-window"> msec</label>
+        <input type="number" id="node-input-window" style="width:180px;">
+        <select id="node-input-windowunit" style="width:120px;">
+            <option value="msecs">MilliSeconds</option>
+            <option value="secs">Seconds</option>
+            <option value="mins">Minutes</option>
+            <option value="hours">Hours</option>
+        </select>
     </div>
     <div class="form-row">
         <label>&nbsp;</label>
         <input type="checkbox" id="node-input-timeout" style="display: inline-block; width: auto; vertical-align: top;">
-        <label for="node-input-timeout" style="width:70%;">Create message at (window) timeout</label>
+        <label for="node-input-timeout" style="width:70%;"> Create message at (window) timeout</label>
+    </div>
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-startup" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-startup" style="width:70%;"> Start measurement at flow startup</label>
     </div>
     <br/>
     <div class="form-row">
@@ -76,7 +100,7 @@
 <script type="text/x-red" data-help-name="interval-length">
     <p>A Node Red node to measure the interval length between messages.</p>
     <p><strong>Format:</strong><br/>
-    The interval length can be obtained in a number of different formats:
+    The interval length (in the output message) can be obtained in a number of different formats:
     <ul>
         <li><code>Milliseconds</code> milliseconds as a number</li>
         <li><code>Human readable</code> milliseconds formatted like '1d:7h:0m:0s'</li>
@@ -85,11 +109,13 @@
     <p><strong>Topic dependent:</strong><br/>
     When selected, the intervals will be measured for each topic separately.</p>
     <p><strong>Minimum:</strong><br/>
-    When X milliseconds are specified, intervals shorter than X milliseconds length will be ignored (i.e. won't result in an output message).</p>
+    When value X is specified, intervals shorter than X will be ignored (i.e. won't result in an output message).</p>
     <p><strong>Maximum:</strong><br/>
-    When Y milliseconds are specified, intervals longer than Y milliseconds length will be ignored (i.e. won't result in an output message).</p>
+    When value Y is specified, intervals longer than Y will be ignored (i.e. won't result in an output message).</p>
     <p><strong>Window:</strong><br/>
-    When Z milliseconds are specified, all intervals within this time window will be accumulated (and send as a single output message).</p>
+    When value Z is specified, all intervals within a window of length Z will be accumulated (and send as a single output message).</p>
     <p><strong>Create msg at timeout:</strong><br/>
-    When selected, an extra message (containing a '0' interval) will be generated at the end of the window (during which no input message has arrived).</p>
+    When selected, an extra message (containing a '0' interval) will be generated at the end of the window (during which <b><u>no</u></b> input message has arrived).</p>
+    <p><strong>Start measurement at startup:</strong><br/>
+    When selected, the node will start counting at flow startup. When deselected, the node will start counting when the first message arrives.  In the latter case, <b><u>no</u></b> output message will be generated when the first message arrives.</p>
 </script>
