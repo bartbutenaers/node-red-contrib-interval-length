@@ -10,7 +10,7 @@
         "name": "Bart Butenaers"
     },
     "license": "Apache-2.0",
-    "keywords": [ "node-red", "interval", "length", "period", "time", "measure" ],
+    "keywords": [ "node-red", "interval", "length", "period", "time", "measure", "duration", "width", "time" ],
     "bugs": {
         "url": "https://github.com/bartbutenaers/node-red-contrib-interval-length/issues"
     },
