@@ -20,6 +20,8 @@
     const jsonizer = require('parse-ms');
     
     function sendMsg(node, msg, interval) {
+        var outputValue;
+        
         if (interval.millisecs == 0 && node.timeout == false) {
             // The first message has no interval (since there hasn't been a previous message), so don't send it ...
             // Except when a timeout is active, then a 0 interval is allowed (at the moment of the timeout).
@@ -30,16 +32,24 @@
             // Convert the array to the specified format
             switch(node.format) {
                 case 'mills': // milliseconds
-                    msg.payload = interval.millisecs;
+                    outputValue = interval.millisecs;
                     break;
                 case 'human': // humanized
-                    msg.payload = humanizer(interval.millisecs);
+                    outputValue = humanizer(interval.millisecs);
                     break;
                 case 'json': // json object
-                    msg.payload = jsonizer(interval.millisecs);
+                    outputValue = jsonizer(interval.millisecs);
                     break;
                 default:
                     // TODO
+            }
+            
+            // Normally the value will be put in the payload (overwriting the original input message payload value).
+            // But the user can explicitely required to put the value in another message field.
+            try {
+                RED.util.setMessageProperty(msg, node.msgField, outputValue, true);
+            } catch(err) {
+                node.error("Error setting value in msg." + node.msgField + " : " + err.message);
             }
 
             node.send(msg);
@@ -58,6 +68,7 @@
         this.window        = config.window;
         this.timeout       = config.timeout;
         this.startup       = config.startup;
+        this.msgField      = config.msgField || 'payload';
         this.intervals     = new Map();
         
         // Store the startup hrtime, only when 'startup' is being requested by the user
