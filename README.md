@@ -15,6 +15,8 @@ When msg1 arrives, the node will start counting (milliseconds).  As soon as msg2
 
 ![Timeline](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_timeline.png)
 
+A common [use case](https://github.com/bartbutenaers/node-red-contrib-interval-length/issues/1) for this node is reading (gas, electricity, water) meters with impulse output (indicated as **S0** output), to calculate energy consumption.
+
 ## Node configuration
 
 ### Format
