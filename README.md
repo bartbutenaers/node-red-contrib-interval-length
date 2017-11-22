@@ -78,6 +78,13 @@ To avoid having to sum manually all the individual interval lengths (generated b
 [{"id":"fffc74b6.0171e8","type":"function","z":"4900f0c0.a1ad6","name":"Generate bounce","func":"var i = 0;\nvar value = 1;\n\nvar interval = setInterval(function() {\n  node.send({payload: value});\n  value = (value === 1) ? 0 : 1;\n  if (++i === 10) clearInterval(interval);\n}, msg.payload);","outputs":1,"noerr":0,"x":592,"y":1000,"wires":[["ba9b6498.46acb8"]]},{"id":"2b611a6c.9d0666","type":"inject","z":"4900f0c0.a1ad6","name":"10 milliseconds","topic":"","payload":"10","payloadType":"num","repeat":"","crontab":"","once":false,"x":382.00007247924805,"y":1000.0000467300415,"wires":[["fffc74b6.0171e8"]]},{"id":"454c08c6.8e57c8","type":"debug","z":"4900f0c0.a1ad6","name":"Display interval","active":true,"console":"false","complete":"payload","x":1020,"y":1000,"wires":[]},{"id":"ba9b6498.46acb8","type":"interval-length","z":"4900f0c0.a1ad6","format":"mills","bytopic":false,"minimum":"","maximum":"","window":"3","timeout":false,"windowunit":"secs","startup":false,"name":"","x":816,"y":1000.3203125,"wires":[["454c08c6.8e57c8"]]}]
 ```
 
+## Output msg field
+By default the interval measurement value will be send in `msg.payload` field of the output message.  However in various use cases it will be desirable to add the interval measurement value as a new **customizable field** to the output message.  This way the original input message is extended with extra information.
+
+For example, extend the input message with a `msg.extrafield` to make sure that the original `msg.payload` value of 100 is untouched:
+
+![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_field.png)
+
 ## Create msg at timeout
 When a time window is specified, an output message will be generated (at the end of the time window) containing the sum of all intervals (of all messages that arrived during the time window).  However when **no messages** have arrived during the time window, **no** output message is being generated.  
 
