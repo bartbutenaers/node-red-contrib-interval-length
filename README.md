@@ -80,6 +80,17 @@ To avoid having to sum manually all the individual interval lengths (generated b
 [{"id":"fffc74b6.0171e8","type":"function","z":"4900f0c0.a1ad6","name":"Generate bounce","func":"var i = 0;\nvar value = 1;\n\nvar interval = setInterval(function() {\n  node.send({payload: value});\n  value = (value === 1) ? 0 : 1;\n  if (++i === 10) clearInterval(interval);\n}, msg.payload);","outputs":1,"noerr":0,"x":592,"y":1000,"wires":[["ba9b6498.46acb8"]]},{"id":"2b611a6c.9d0666","type":"inject","z":"4900f0c0.a1ad6","name":"10 milliseconds","topic":"","payload":"10","payloadType":"num","repeat":"","crontab":"","once":false,"x":382.00007247924805,"y":1000.0000467300415,"wires":[["fffc74b6.0171e8"]]},{"id":"454c08c6.8e57c8","type":"debug","z":"4900f0c0.a1ad6","name":"Display interval","active":true,"console":"false","complete":"payload","x":1020,"y":1000,"wires":[]},{"id":"ba9b6498.46acb8","type":"interval-length","z":"4900f0c0.a1ad6","format":"mills","bytopic":false,"minimum":"","maximum":"","window":"3","timeout":false,"windowunit":"secs","startup":false,"name":"","x":816,"y":1000.3203125,"wires":[["454c08c6.8e57c8"]]}]
 ```
 
+## Timeout
+When a timeout length is specified, a timeout message will be generated when the time interval - between two successive messages - exceeds the timeout interval:
+
+![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_timeout.png)
+
+Use case : this can be used to make sure that messages arrive with a maximum interval in between them.  E.g. when you expect some node to send a message every minute, and you want to generate an alarm when this doesn't happen.
+
+To avoid that extra nodes are needed afterwards to handle the timeout messages differently, the timeout messages will be generated on a separate output port.  The interval measurement messages will be generated on the upper output, while the timeout messages will be generated on the lower output port:
+
+![Outputs](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_outputs.png)
+
 ## Output msg field
 By default the interval measurement value will be send in `msg.payload` field of the output message.  However in various use cases it will be desirable to add the interval measurement value as a new **customizable field** to the output message.  This way the original input message is extended with extra information.
 
@@ -87,14 +98,12 @@ For example, extend the input message with a `msg.extrafield` to make sure that 
 
 ![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_field.png)
 
-## Create msg at timeout
+## Create 0-interval msg at window timeout
 When a time window is specified, an output message will be generated (at the end of the time window) containing the sum of all intervals (of all messages that arrived during the time window).  However when **no messages** have arrived during the time window, **no** output message is being generated.  
 
 When this option is selected, an extra message msg2 (containing a `0` interval) will be generated at the end of the window (when no messages have arrived):
 
 ![Timeout](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_timeout.png)
-
-Use case : this can be used to make sure that messages arrive with a maximum interval in between them.  E.g. when you expect some node to send a message every minute, and you want to generate an alarm when this doesn't happen.
 
 ## Start measurement at startup
 This node calculates the interval length between successive messages.  This means that this node will start counting milliseconds when the first message msg1 arrives. When the second message msg2 arrives, the interval of Y msecs is being calculated (and sended as output message msg4).  But **no** output message msg3 is generated when the first message arrives...
@@ -102,3 +111,10 @@ This node calculates the interval length between successive messages.  This mean
 When this option is selected, the node will already start counting at flow startup. As a result, an output message msg3 will also be generated at the moment the first message msg1 arrives: this time interval of X msecs is calculated between system startup (e.g. flow deploy or redeploy) and the arrival time of the first message msg1:
 
 ![Startup](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_startup.png)
+
+## Repeat timeout msg 
+When a timeout interval is specified, a **single** timeout message is generated as soon as the time interval (between two successive messages) exceeds the timeout interval.  However when the interval between two successive messages increases, it might be useful to keep on generating timeout messages:
+ 
+![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_timeout_repeat.png)
+
+When this option is selected, a timeout message will be generated **periodically**: i.e. every time the timeout interval is exceeded.
