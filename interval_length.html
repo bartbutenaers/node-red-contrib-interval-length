@@ -20,16 +20,20 @@
             minimum: {value:"", validator: function(v) { return !v || !isNaN(v)}},
             maximum: {value:"", validator: function(v) { return !v || !isNaN(v)}},
             window:  {value:""},
-            timeout: {value:false},
+            timeout: {value:false}, // Window timeout (true/false) !
+            msgTimeout: {value:""},
             minimumunit: {value:"msecs"},
             maximumunit: {value:"msecs"},
             windowunit: {value:"msecs"},
+            msgTimeoutUnit: {value:"msecs"},
             startup: {value:false},
             msgField: {value:"payload", required:true},
+            repeatTimeout: {value:false},
             name: {value:""}
         },
         inputs:1,
-        outputs:1,
+        outputs:2,
+        outputLabels: ["interval", "timeout"],
         icon: "length.png",
         label: function() {
             return this.name||"Interval length";
@@ -84,9 +88,19 @@
         </select>
     </div>
     <div class="form-row">
-        <label for="node-input-window"><i class="fa fa-level-down"></i> Window</label>
+        <label for="node-input-window"><i class="fa fa-arrows-h"></i> Window</label>
         <input type="number" id="node-input-window" style="width:180px;">
         <select id="node-input-windowunit" style="width:120px;">
+            <option value="msecs">MilliSeconds</option>
+            <option value="secs">Seconds</option>
+            <option value="mins">Minutes</option>
+            <option value="hours">Hours</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-msgTimeout"><i class="fa fa-clock-o"></i> Timeout</label>
+        <input type="number" id="node-input-msgTimeout" style="width:180px;">
+        <select id="node-input-msgTimeoutUnit" style="width:120px;">
             <option value="msecs">MilliSeconds</option>
             <option value="secs">Seconds</option>
             <option value="mins">Minutes</option>
@@ -101,7 +115,7 @@
     <div class="form-row">
         <label>&nbsp;</label>
         <input type="checkbox" id="node-input-timeout" style="display: inline-block; width: auto; vertical-align: top;">
-        <label for="node-input-timeout" style="width:70%;"> Create message at (window) timeout</label>
+        <label for="node-input-timeout" style="width:70%;"> Create 0-interval msg at window timeout</label>
     </div>
     <div class="form-row">
         <label>&nbsp;</label>
@@ -112,6 +126,11 @@
         <label>&nbsp;</label>
         <input type="checkbox" id="node-input-separateField" style="display: inline-block; width: auto; vertical-align: top;">
         <label for="node-input-separateField" style="width:70%;"> Add measurement in 'interval' field</label>
+    </div>
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-repeatTimeout" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-repeatTimeout" style="width:70%;"> Repeat timeout msg periodically</label>
     </div>
     <br/>
     <div class="form-row">
@@ -137,12 +156,16 @@
     When value Y is specified, intervals longer than Y will be ignored (i.e. won't result in an output message).</p>
     <p><strong>Window:</strong><br/>
     When value Z is specified, all intervals within a window of length Z will be accumulated (and send as a single output message).</p>
+    <p><strong>Timeout:</strong><br/>
+    When value T is specified, a timeout message will be generated (on the second output port) when no new input message has arrived in the specified time interval T.</p>
     <p><strong>Msg field:</strong><br/>
     By default the interval measurement value will be in the <code>msg.payload</code> field of the output message.  However if the original message (and it's payload) needs to be preserved, another output message field can be specified here.</p>
-    <p><strong>Create msg at timeout:</strong><br/>
-    When selected, an extra message (containing a '0' interval) will be generated at the end of the window (during which <b><u>no</u></b> input message has arrived).</p>
+    <p><strong>Create 0-interval msg at window timeout:</strong><br/>
+    When selected, an extra message (containing a '0' interval) will be generated at the end of the window, when <b><u>no</u></b> input message has arrived during the window interval.</p>
     <p><strong>Start measurement at startup:</strong><br/>
     When selected, the node will start counting at flow startup. When deselected, the node will start counting when the first message arrives.  In the latter case, <b><u>no</u></b> output message will be generated when the first message arrives.</p>
     <p><strong>Add measurement in interval field:</strong><br/>
     When selected, the node will not overwrite the existing <code>msg.payload</code> content (by the measurment value).  Instead the measurement will be added in an extra <code>msg.interval</code> field.</p>
+    <p><strong>Repeat timeout msg periodically:</strong><br/>
+    When selected, the timout message will be repeated periodically (as long as the expected next input message doesn't arrive).</p>
 </script>
