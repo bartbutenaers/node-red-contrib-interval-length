@@ -19,16 +19,20 @@
     const humanizer = require('pretty-ms');
     const jsonizer = require('parse-ms');
     
-    function sendMsg(node, msg, interval) {
+    function sendMsg(node, msg, interval, output) {
         var outputValue;
         
-        if (interval.millisecs == 0 && node.timeout == false) {
-            // The first message has no interval (since there hasn't been a previous message), so don't send it ...
-            // Except when a timeout is active, then a 0 interval is allowed (at the moment of the timeout).
-            return;
+        // Send timeout messages (on output 2) anyway
+        if (output !== 2) {
+            if (interval.millisecs == 0 && node.timeout == false) {
+                // The first message has no interval (since there hasn't been a previous message), so don't send it ...
+                // Except when a timeout is active, then a 0 interval is allowed (at the moment of the timeout).
+                return;
+            }
         }
         
-        if ((!node.minimum || node.minimum <= interval.millisecs) && (!node.maximum || node.maximum >= interval.millisecs)) {                                      
+        // Send timeout messages (on output 2) anyway
+        if (output === 2 || ((!node.minimum || node.minimum <= interval.millisecs) && (!node.maximum || node.maximum >= interval.millisecs))) {                                      
             // Convert the array to the specified format
             switch(node.format) {
                 case 'mills': // milliseconds
@@ -52,7 +56,13 @@
                 node.error("Error setting value in msg." + node.msgField + " : " + err.message);
             }
 
-            node.send(msg);
+            // Send the interval message on the specified output port (1 or 2)
+            if (output === 1) {
+                node.send([msg, null]);
+            }
+            else {
+                node.send([null, msg]);
+            }
             
             // As soon as milliseconds have been output, they should be discarded for the next measurement
             interval.millisecs = 0;
@@ -66,9 +76,11 @@
         this.minimum       = config.minimum;
         this.maximum       = config.maximum;
         this.window        = config.window;
-        this.timeout       = config.timeout;
+        this.windowTimeout = config.timeout; // the window timeout (true/false).  Don't rename for backward compatibility!!
+        this.msgTimeout    = config.msgTimeout; // the msg timeout
         this.startup       = config.startup;
         this.msgField      = config.msgField || 'payload';
+        this.repeatTimeout = config.repeatTimeout;
         this.intervals     = new Map();
         
         // Store the startup hrtime, only when 'startup' is being requested by the user
@@ -128,6 +140,22 @@
             }
         }
         
+        if (this.msgTimeout) {
+            // Convert the 'msg timeout' value to milliseconds (based on the selected time unit)
+            switch(config.msgTimeoutUnit) {
+                case "secs":
+                    this.msgTimeout *= 1000;
+                    break;
+                case "mins":
+                    this.msgTimeout *= 1000 * 60;
+                    break;
+                case "hours":
+                    this.msgTimeout *= 1000 * 60 * 60;
+                    break;            
+                default: // "msecs" so no conversion needed
+            }
+        }
+        
         var node = this;
 
         node.on("input", function(msg) { 
@@ -138,7 +166,7 @@
             var interval = node.intervals.get(topic);
             
             if (!interval) {
-                interval = { millisecs: 0, hrtime: null, timer: null };
+                interval = { millisecs: 0, hrtime: null, windowTimer: null, timeoutTimer: null };
                 node.intervals.set(topic, interval);
             }
             
@@ -159,7 +187,7 @@
                 // Convert the array to milliseconds
                 var milliSeconds = (difference[0] * 1e9 + difference[1]) / 1e6;
                 
-                if (interval.timer) {
+                if (interval.windowTimer) {
                     // When a window timer is already running (for the specified topic), accumulate the interval to the others
                     interval.millisecs += milliSeconds;
                 } 
@@ -167,36 +195,62 @@
                     interval.millisecs = milliSeconds;
                     
                     // send the (unaccumulated) interval length 
-                    sendMsg(node, msg, interval);
+                    sendMsg(node, msg, interval, 1);
                 }
             }   
                         
-            if ( node.window > 0 && !interval.timer) { 
-                // Start a new timer, for the specified time window.
-                // The timer id will be stored, so it can be found when a new msg arrives at the input.
-                interval.timer = setInterval(function() {        
+            if ( node.window > 0 && !interval.windowTimer) { 
+                // Start a new window timer, for the specified time window.
+                // The window timer id will be stored, so it can be found when a new msg arrives at the input.
+                interval.windowTimer = setInterval(function() {        
                     // At the end of the window, we will send the accumulated interval. 
-                    // When nothing received during the window (sum = 0), nothing will be send unless a timeout is specified. 
-                    if (interval.millisecs > 0 || node.timeout == true) { 
-                        sendMsg(node, msg, interval);           
+                    // When nothing received during the window (sum = 0), nothing will be send unless a window timeout is specified. 
+                    if (interval.millisecs > 0 || node.windowTimeout == true) { 
+                        sendMsg(node, msg, interval, 1);           
                     } 
 
-                    clearInterval(interval.timer);
-                    interval.timer = null;                    
+                    clearInterval(interval.windowTimer);
+                    interval.windowTimer = null;                    
                 }, node.window); 
+            }
+            
+            if ( node.msgTimeout > 0) {
+                if (interval.timeoutTimer) { 
+                    // Start the timeout counting all over again, when a new message arrives ...
+                    clearInterval(interval.timeoutTimer);
+                }
+                            
+                // Start a new msg timeout timer, for the new message.
+                // The msg timeout timer id will be stored, so it can be found when a new msg arrives at the input.
+                interval.timeoutTimer = setInterval(function() {    
+                    var timeoutMsg = {};
+                    sendMsg(node, msg, interval, 2);  
+                    
+                    // Don't repeat the timout, except when specified explicitely
+                    if (!node.repeatTimeout) {
+                        clearInterval(interval.timeoutTimer);
+                        interval.timeoutTimer = null;  
+                    }                        
+                }, node.msgTimeout); 
             }
             
             // Store the time when this message has arrived 
             interval.hrtime = newHrTime;
         });
         
-        node.on("close", function() {
+        node.on("close", function() {            
+            for(var interval of node.intervals.values()) {
+                if (interval.windowTimer) {
+                    clearInterval(interval.windowTimer);
+                }
+                
+                if (interval.timeoutTimer) {
+                    clearInterval(interval.timeoutTimer);
+                }                
+            }
+            
             node.intervals.clear();
             node.status({});
-            
-            for(var interval of node.intervals.values()) {
-                clearInterval(interval.timer);
-            }
         });
     }
 
