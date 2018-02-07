@@ -80,7 +80,7 @@ To avoid having to sum manually all the individual interval lengths (generated b
 [{"id":"fffc74b6.0171e8","type":"function","z":"4900f0c0.a1ad6","name":"Generate bounce","func":"var i = 0;\nvar value = 1;\n\nvar interval = setInterval(function() {\n  node.send({payload: value});\n  value = (value === 1) ? 0 : 1;\n  if (++i === 10) clearInterval(interval);\n}, msg.payload);","outputs":1,"noerr":0,"x":592,"y":1000,"wires":[["ba9b6498.46acb8"]]},{"id":"2b611a6c.9d0666","type":"inject","z":"4900f0c0.a1ad6","name":"10 milliseconds","topic":"","payload":"10","payloadType":"num","repeat":"","crontab":"","once":false,"x":382.00007247924805,"y":1000.0000467300415,"wires":[["fffc74b6.0171e8"]]},{"id":"454c08c6.8e57c8","type":"debug","z":"4900f0c0.a1ad6","name":"Display interval","active":true,"console":"false","complete":"payload","x":1020,"y":1000,"wires":[]},{"id":"ba9b6498.46acb8","type":"interval-length","z":"4900f0c0.a1ad6","format":"mills","bytopic":false,"minimum":"","maximum":"","window":"3","timeout":false,"windowunit":"secs","startup":false,"name":"","x":816,"y":1000.3203125,"wires":[["454c08c6.8e57c8"]]}]
 ```
 
-## Timeout
+## Timeout (since version 0.0.2)
 When a timeout length is specified, a timeout message will be generated when the time interval - between two successive messages - exceeds the timeout interval:
 
 ![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_timeout.png)
@@ -91,7 +91,7 @@ To avoid that extra nodes are needed afterwards to handle the timeout messages d
 
 ![Outputs](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_outputs.png)
 
-## Output msg field
+## Output msg field (since version 0.0.2)
 By default the interval measurement value will be send in `msg.payload` field of the output message.  However in various use cases it will be desirable to add the interval measurement value as a new **customizable field** to the output message.  This way the original input message is extended with extra information.
 
 For example, extend the input message with a `msg.extrafield` to make sure that the original `msg.payload` value of 100 is untouched:
@@ -112,7 +112,7 @@ When this option is selected, the node will already start counting at flow start
 
 ![Startup](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_startup.png)
 
-## Repeat timeout msg 
+## Repeat timeout msg (since version 0.0.2)
 When a timeout interval is specified, a **single** timeout message is generated as soon as the time interval (between two successive messages) exceeds the timeout interval.  However when the interval between two successive messages increases, it might be useful to keep on generating timeout messages:
  
 ![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_timeout_repeat.png)
