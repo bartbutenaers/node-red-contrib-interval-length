@@ -78,6 +78,7 @@
         this.window        = config.window;
         this.windowTimeout = config.timeout; // the window timeout (true/false).  Don't rename for backward compatibility!!
         this.msgTimeout    = config.msgTimeout; // the msg timeout
+        this.reset         = config.reset || false;
         this.startup       = config.startup;
         this.msgField      = config.msgField || 'payload';
         this.repeatTimeout = config.repeatTimeout;
@@ -163,6 +164,15 @@
             
             // When no topic-based resending, store all topics in the map as a single virtual topic (named 'all_topics')
             var topic = node.byTopic ? msg.topic : "all_topics";
+            
+            if (node.reset === true && msg.hasOwnProperty('reset') && msg.reset === true) {
+                // When a reset message arrives, all previous interval measurements need to be removed
+                interval = node.intervals.delete(topic);
+                
+                // Reset messages should be ignored during the interval measurement below
+                return;
+            }
+            
             var interval = node.intervals.get(topic);
             
             if (!interval) {
