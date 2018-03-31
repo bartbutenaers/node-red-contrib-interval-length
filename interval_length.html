@@ -26,6 +26,7 @@
             maximumunit: {value:"msecs"},
             windowunit: {value:"msecs"},
             msgTimeoutUnit: {value:"msecs"},
+            reset: {value:false},
             startup: {value:false},
             msgField: {value:"payload", required:true},
             repeatTimeout: {value:false},
@@ -132,6 +133,11 @@
         <input type="checkbox" id="node-input-repeatTimeout" style="display: inline-block; width: auto; vertical-align: top;">
         <label for="node-input-repeatTimeout" style="width:70%;"> Repeat timeout msg periodically</label>
     </div>
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-reset" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-reset" style="width:70%;"> Allow measurements to be reset</label>
+    </div>
     <br/>
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
@@ -157,7 +163,7 @@
     <p><strong>Window:</strong><br/>
     When value Z is specified, all intervals within a window of length Z will be accumulated (and send as a single output message).</p>
     <p><strong>Timeout:</strong><br/>
-    When value T is specified, a timeout message will be generated (on the second output port) when no new input message has arrived in the specified time interval T.</p>
+    When value T is specified, a timeout message will be generated (on the second output port) when no new input message has arrived in the specified time interval T.</p>   
     <p><strong>Msg field:</strong><br/>
     By default the interval measurement value will be in the <code>msg.payload</code> field of the output message.  However if the original message (and it's payload) needs to be preserved, another output message field can be specified here.</p>
     <p><strong>Create 0-interval msg at window timeout:</strong><br/>
@@ -168,4 +174,6 @@
     When selected, the node will not overwrite the existing <code>msg.payload</code> content (by the measurment value).  Instead the measurement will be added in an extra <code>msg.interval</code> field.</p>
     <p><strong>Repeat timeout msg periodically:</strong><br/>
     When selected, the timout message will be repeated periodically (as long as the expected next input message doesn't arrive).</p>
+    <p><strong>Allow measurements to be reset:</strong><br/>
+    When selected, current measurement will be reset as soon as a <code>msg.reset=true</code> arrives.  This reset message will not be taken into account for the interval measurement.</p>
 </script>
