@@ -48,8 +48,10 @@
                     // TODO
             }
             
+            msg.timestamp = interval.newTimestamp;
+      
             // Normally the value will be put in the payload (overwriting the original input message payload value).
-            // But the user can explicitely required to put the value in another message field.
+            // But the user can explicitly require to put the value in another message field.
             try {
                 RED.util.setMessageProperty(msg, node.msgField, outputValue, true);
             } catch(err) {
@@ -161,6 +163,7 @@
 
         node.on("input", function(msg) { 
             var newHrTime = process.hrtime();
+            var newTimestamp = Date.now();
             
             // When no topic-based resending, store all topics in the map as a single virtual topic (named 'all_topics')
             var topic = node.byTopic ? msg.topic : "all_topics";
@@ -176,7 +179,7 @@
             var interval = node.intervals.get(topic);
             
             if (!interval) {
-                interval = { millisecs: 0, hrtime: null, windowTimer: null, timeoutTimer: null };
+                interval = { millisecs: 0, hrtime: null, timestamp: null, windowTimer: null, timeoutTimer: null };
                 node.intervals.set(topic, interval);
             }
             
@@ -246,6 +249,7 @@
             
             // Store the time when this message has arrived 
             interval.hrtime = newHrTime;
+            interval.newTimestamp = newTimestamp;
         });
         
         node.on("close", function() {            
