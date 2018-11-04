@@ -48,15 +48,20 @@
                     // TODO
             }
             
-            // Store the timestamp (milliseconds) of the previous msg in the output message
-            msg.timestamp = interval.timestamp;
-
-            // Normally the value will be put in the payload (overwriting the original input message payload value).
-            // But the user can explicitly require to put the value in another message field.
+            // Normally the interval value will be put in the msg,payload (overwriting the original input msg.payload value).
+            // But the user can explicitly require to put the interval value in another message field.
             try {
                 RED.util.setMessageProperty(msg, node.msgField, outputValue, true);
             } catch(err) {
-                node.error("Error setting value in msg." + node.msgField + " : " + err.message);
+                node.error("Error setting interval value in msg." + node.msgField + " : " + err.message);
+            }
+            
+            // Normally the timestamp value will be put in the msg.timestamp (overwriting the original input msg.timestamp value, if available).
+            // But the user can explicitly require to put the timestamp value in another message field.
+            try {
+                RED.util.setMessageProperty(msg, node.timestampField, interval.timestamp, true);
+            } catch(err) {
+                node.error("Error setting timestamp value in msg." + node.timestampField + " : " + err.message);
             }
 
             // Send the interval message on the specified output port (1 or 2)
@@ -74,18 +79,19 @@
 
     function IntervalLengthNode(config) {
         RED.nodes.createNode(this,config);
-        this.format        = config.format;
-        this.byTopic       = config.bytopic; 
-        this.minimum       = config.minimum;
-        this.maximum       = config.maximum;
-        this.window        = config.window;
-        this.windowTimeout = config.timeout; // the window timeout (true/false).  Don't rename for backward compatibility!!
-        this.msgTimeout    = config.msgTimeout; // the msg timeout
-        this.reset         = config.reset || false;
-        this.startup       = config.startup;
-        this.msgField      = config.msgField || 'payload';
-        this.repeatTimeout = config.repeatTimeout;
-        this.intervals     = new Map();
+        this.format         = config.format;
+        this.byTopic        = config.bytopic; 
+        this.minimum        = config.minimum;
+        this.maximum        = config.maximum;
+        this.window         = config.window;
+        this.windowTimeout  = config.timeout; // the window timeout (true/false).  Don't rename for backward compatibility!!
+        this.msgTimeout     = config.msgTimeout; // the msg timeout
+        this.reset          = config.reset || false;
+        this.startup        = config.startup;
+        this.msgField       = config.msgField || 'payload';
+        this.timestampField = config.timestampField || 'timestamp';
+        this.repeatTimeout  = config.repeatTimeout;
+        this.intervals      = new Map();
         
         // Store the startup hrtime, only when 'startup' is being requested by the user
         if (this.startup == true) {
@@ -174,15 +180,23 @@
             // When no topic-based resending, store all topics in the map as a single virtual topic (named 'all_topics')
             var topic = node.byTopic ? msg.topic : "all_topics";
             
+            var interval = node.intervals.get(topic);
+            
             if (node.reset === true && msg.hasOwnProperty('reset') && msg.reset === true) {
+                // Before deleting an interval, make sure its running timers are stopped first
+                if (interval.windowTimer) {
+                    clearInterval(interval.windowTimer);
+                }
+                if (interval.timeoutTimer) {
+                    clearInterval(interval.timeoutTimer);
+                }                
+                
                 // When a reset message arrives, all previous interval measurements need to be removed
                 interval = node.intervals.delete(topic);
                 
                 // Reset messages should be ignored during the interval measurement below
                 return;
             }
-            
-            var interval = node.intervals.get(topic);
             
             if (!interval) {
                 interval = { millisecs: 0, hrtime: null, timestamp: null, windowTimer: null, timeoutTimer: null };
@@ -243,14 +257,14 @@
                 // The msg timeout timer id will be stored, so it can be found when a new msg arrives at the input.
                 interval.timeoutTimer = setInterval(function() {    
                     var timeoutMsg = {};
-                                        
+                    
                     // Calculate the time difference between the previous hrTime and now.
                     // This recalculation is required, because we might be already at the N-th timeout message
                     var difference = process.hrtime(interval.hrtime);
             
                     // Convert the array to milliseconds
-                    interval.millisecs = (difference[0] * 1e9 + difference[1]) / 1e6;
-
+                    interval.millisecs = (difference[0] * 1e9 + difference[1]) / 1e6;                   
+                    
                     sendMsg(node, msg, interval, 2);  
                     
                     // Don't repeat the timout, except when specified explicitely
