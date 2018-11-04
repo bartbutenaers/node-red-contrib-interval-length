@@ -29,6 +29,7 @@
             reset: {value:false},
             startup: {value:false},
             msgField: {value:"payload", required:true},
+            timestampField: {value:"timestamp", required:true},
             repeatTimeout: {value:false},
             name: {value:""}
         },
@@ -45,11 +46,21 @@
             $("#node-input-typed-msgField").typedInput({types:['msg']});
             $("#node-input-typed-msgField").typedInput('type','msg');
             $("#node-input-typed-msgField").typedInput('value',value);
+            
+            // Show the timestampField value in a typedinput element (dropdown with only 'msg')
+            var value = $("#node-input-timestampField").val() || 'timestamp';
+            $("#node-input-typed-timestampField").typedInput({types:['msg']});
+            $("#node-input-typed-timestampField").typedInput('type','msg');
+            $("#node-input-typed-timestampField").typedInput('value',value);
         },
         oneditsave: function() {
             // Copy the msgField value from the typedinput element to the msgField element
             var value = $("#node-input-typed-msgField").typedInput('value');
             $("#node-input-msgField").val(value);
+            
+            // Copy the timestampField value from the typedinput element to the timestampField element
+            var value = $("#node-input-typed-timestampField").typedInput('value');
+            $("#node-input-timestampField").val(value);
         }
     });
 </script>
@@ -109,9 +120,14 @@
         </select>
     </div>
     <div class="form-row">
-        <label for="node-input-typed-msgField"><i class="fa fa-list"></i> Msg field</label>
+        <label for="node-input-typed-msgField"><i class="fa fa-list"></i> Interval</label>
         <input id="node-input-typed-msgField" type="text" style="width: 70%">
         <input id="node-input-msgField" type="hidden">
+    </div>
+    <div class="form-row">
+        <label for="node-input-typed-timestampField"><i class="fa fa-list"></i> Timestamp</label>
+        <input id="node-input-typed-timestampField" type="text" style="width: 70%">
+        <input id="node-input-timestampField" type="hidden">
     </div>
     <div class="form-row">
         <label>&nbsp;</label>
@@ -164,8 +180,10 @@
     When value Z is specified, all intervals within a window of length Z will be accumulated (and send as a single output message).</p>
     <p><strong>Timeout:</strong><br/>
     When value T is specified, a timeout message will be generated (on the second output port) when no new input message has arrived in the specified time interval T.</p>   
-    <p><strong>Msg field:</strong><br/>
+    <p><strong>Interval:</strong><br/>
     By default the interval measurement value will be in the <code>msg.payload</code> field of the output message.  However if the original message (and it's payload) needs to be preserved, another output message field can be specified here.</p>
+    <p><strong>Timestamp:</strong><br/>
+    By default the timestamp of the previous message will be in the <code>msg.timestamp</code> field of the output message.  However if the original message (and it's timestamp field) needs to be preserved, another output message field can be specified here.</p>
     <p><strong>Create 0-interval msg at window timeout:</strong><br/>
     When selected, an extra message (containing a '0' interval) will be generated at the end of the window, when <b><u>no</u></b> input message has arrived during the window interval.</p>
     <p><strong>Start measurement at startup:</strong><br/>
