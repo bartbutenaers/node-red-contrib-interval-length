@@ -91,12 +91,15 @@ To avoid that extra nodes are needed afterwards to handle the timeout messages d
 
 ![Outputs](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_outputs.png)
 
-## Output msg field (since version 0.0.2)
+## Output interval field (since version 0.0.2)
 By default the interval measurement value will be send in `msg.payload` field of the output message.  However in various use cases it will be desirable to add the interval measurement value as a new **customizable field** to the output message.  This way the original input message is extended with extra information.
 
 For example, extend the input message with a `msg.extrafield` to make sure that the original `msg.payload` value of 100 is untouched:
 
 ![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_field.png)
+
+## Output timestamp field (since version 0.0.3)
+By default the timestamp - when the previous message has arrived in this node - value will be send in `msg.timestamp` field of the output message.  However in various use cases it will be desirable to add the timestamp value as a new **customizable field** to the output message.  This way the original input message is extended with extra information.
 
 ## Create 0-interval msg at window timeout
 When a time window is specified, an output message will be generated (at the end of the time window) containing the sum of all intervals (of all messages that arrived during the time window).  However when **no messages** have arrived during the time window, **no** output message is being generated.  
@@ -117,4 +120,15 @@ When a timeout interval is specified, a **single** timeout message is generated 
  
 ![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_timeout_repeat.png)
 
-When this option is selected, a timeout message will be generated **periodically**: i.e. every time the timeout interval is exceeded.
+When this option is selected, a timeout message will be generated **periodically**: i.e. every time the timeout interval is exceeded.  The `msg.payload` will contain the entire time interval since the last message had arrived.
+
+## Allow measurements to be reset (since version 0.0.3)
+When this option is selected, an input message containing a `msg.reset` field can reset the node.  If this reset message has a `msg.topic` field, then all previous measurement for this specific topic will be removed.  The reset message is only used to reset the node, but it will be ignored during interval measurement (i.e. no interval is measured between the previous message and the reset message).
+
+![Reset msg](https://user-images.githubusercontent.com/14224149/38167951-331264b0-3540-11e8-98ed-97553280aeeb.png)
+
+```
+[{"id":"e6f4e8d1.34d3e8","type":"interval-length","z":"66fa353.41687cc","format":"mills","bytopic":false,"minimum":"","maximum":"","window":"","timeout":false,"msgTimeout":"","minimumunit":"msecs","maximumunit":"msecs","windowunit":"msecs","msgTimeoutUnit":"msecs","reset":true,"startup":false,"msgField":"payload","repeatTimeout":false,"name":"","x":1332,"y":180,"wires":[["60353310.88d95c"],[]]},{"id":"ef1fc202.21f8f","type":"inject","z":"66fa353.41687cc","name":"Normal message","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":940,"y":180,"wires":[["e6f4e8d1.34d3e8"]]},{"id":"60353310.88d95c","type":"debug","z":"66fa353.41687cc","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":1530,"y":174,"wires":[]},{"id":"5ea7c87a.c02488","type":"inject","z":"66fa353.41687cc","name":"Reset message","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":940,"y":220,"wires":[["dd66d070.e9ddc"]]},{"id":"dd66d070.e9ddc","type":"change","z":"66fa353.41687cc","name":"","rules":[{"t":"set","p":"reset","pt":"msg","to":"true","tot":"bool"}],"action":"","property":"","from":"","to":"","reg":false,"x":1140,"y":220,"wires":[["e6f4e8d1.34d3e8"]]}]
+```
+
+Remark: when the *'Repeat timeout msg'* option is selected, the node will also interrupt repeating timeout messages.
