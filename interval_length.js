@@ -48,8 +48,9 @@
                     // TODO
             }
             
-            msg.timestamp = interval.newTimestamp;
-      
+            // Store the timestamp (milliseconds) of the previous msg in the output message
+            msg.timestamp = interval.timestamp;
+
             // Normally the value will be put in the payload (overwriting the original input message payload value).
             // But the user can explicitly require to put the value in another message field.
             try {
@@ -161,7 +162,12 @@
         
         var node = this;
 
-        node.on("input", function(msg) { 
+        node.on("input", function(msg) {
+            // Store the timestamp when the message has arrived, which will be used afterwards to calculate the interval
+            // length between the messages.  However we will store the current timestamp in two separate ways:
+            // - As hrtime since that is very accurate to calculate time periods between two hrtimes.
+            // - In milliseconds (Date.now) to represents timestamps (similar to the timestamp from the Inject node), since
+            //   hrtimes cannot be used to generate absolute timestamps (see https://discourse.nodered.org/t/hrtime-vs-date-now/4550)
             var newHrTime = process.hrtime();
             var newTimestamp = Date.now();
             
@@ -237,6 +243,14 @@
                 // The msg timeout timer id will be stored, so it can be found when a new msg arrives at the input.
                 interval.timeoutTimer = setInterval(function() {    
                     var timeoutMsg = {};
+                                        
+                    // Calculate the time difference between the previous hrTime and now.
+                    // This recalculation is required, because we might be already at the N-th timeout message
+                    var difference = process.hrtime(interval.hrtime);
+            
+                    // Convert the array to milliseconds
+                    interval.millisecs = (difference[0] * 1e9 + difference[1]) / 1e6;
+
                     sendMsg(node, msg, interval, 2);  
                     
                     // Don't repeat the timout, except when specified explicitely
@@ -249,7 +263,7 @@
             
             // Store the time when this message has arrived 
             interval.hrtime = newHrTime;
-            interval.newTimestamp = newTimestamp;
+            interval.timestamp = newTimestamp;
         });
         
         node.on("close", function() {            
