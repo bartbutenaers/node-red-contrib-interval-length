@@ -91,14 +91,14 @@ To avoid that extra nodes are needed afterwards to handle the timeout messages d
 
 ![Outputs](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_outputs.png)
 
-## Output interval field (since version 0.0.2)
+## Interval field (since version 0.0.2)
 By default the interval measurement value will be send in `msg.payload` field of the output message.  However in various use cases it will be desirable to add the interval measurement value as a new **customizable field** to the output message.  This way the original input message is extended with extra information.
 
 For example, extend the input message with a `msg.extrafield` to make sure that the original `msg.payload` value of 100 is untouched:
 
 ![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_field.png)
 
-## Output timestamp field (since version 0.0.3)
+## Timestamp field (since version 0.0.3)
 By default the timestamp - when the previous message has arrived in this node - value will be send in `msg.timestamp` field of the output message.  However in various use cases it will be desirable to add the timestamp value as a new **customizable field** to the output message.  This way the original input message is extended with extra information.
 
 ## Create 0-interval msg at window timeout
