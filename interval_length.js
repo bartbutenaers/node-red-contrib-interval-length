@@ -183,16 +183,18 @@
             var interval = node.intervals.get(topic);
             
             if (node.reset === true && msg.hasOwnProperty('reset') && msg.reset === true) {
-                // Before deleting an interval, make sure its running timers are stopped first
-                if (interval.windowTimer) {
-                    clearInterval(interval.windowTimer);
+                if (interval) {
+                    // Before deleting an interval, make sure its running timers are stopped first
+                    if (interval.windowTimer) {
+                        clearInterval(interval.windowTimer);
+                    }
+                    if (interval.timeoutTimer) {
+                        clearInterval(interval.timeoutTimer);
+                    }                
+                    
+                    // When a reset message arrives, all previous interval measurements need to be removed
+                    node.intervals.delete(topic);
                 }
-                if (interval.timeoutTimer) {
-                    clearInterval(interval.timeoutTimer);
-                }                
-                
-                // When a reset message arrives, all previous interval measurements need to be removed
-                interval = node.intervals.delete(topic);
                 
                 // Reset messages should be ignored during the interval measurement below
                 return;
