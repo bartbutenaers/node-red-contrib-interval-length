@@ -98,6 +98,10 @@ For example, extend the input message with a `msg.extrafield` to make sure that 
 
 ![Msg field](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-interval-length/master/images/interval_field.png)
 
+Quick demo to show how to send the interval value in ```msg.myfield```, to make sure that the original ```msg.payload``` field remains untouched:
+
+![interval_length_msg_field](https://user-images.githubusercontent.com/14224149/67619196-d2acc980-f7f8-11e9-905b-755988ffbd72.gif)
+
 ## Timestamp field (since version 0.0.3)
 By default the timestamp - when the previous message has arrived in this node - value will be send in `msg.timestamp` field of the output message.  However in various use cases it will be desirable to add the timestamp value as a new **customizable field** to the output message.  This way the original input message is extended with extra information.
 
