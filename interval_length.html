@@ -141,11 +141,6 @@
     </div>
     <div class="form-row">
         <label>&nbsp;</label>
-        <input type="checkbox" id="node-input-separateField" style="display: inline-block; width: auto; vertical-align: top;">
-        <label for="node-input-separateField" style="width:70%;"> Add measurement in 'interval' field</label>
-    </div>
-    <div class="form-row">
-        <label>&nbsp;</label>
         <input type="checkbox" id="node-input-repeatTimeout" style="display: inline-block; width: auto; vertical-align: top;">
         <label for="node-input-repeatTimeout" style="width:70%;"> Repeat timeout msg periodically</label>
     </div>
@@ -188,8 +183,6 @@
     When selected, an extra message (containing a '0' interval) will be generated at the end of the window, when <b><u>no</u></b> input message has arrived during the window interval.</p>
     <p><strong>Start measurement at startup:</strong><br/>
     When selected, the node will start counting at flow startup. When deselected, the node will start counting when the first message arrives.  In the latter case, <b><u>no</u></b> output message will be generated when the first message arrives.</p>
-    <p><strong>Add measurement in interval field:</strong><br/>
-    When selected, the node will not overwrite the existing <code>msg.payload</code> content (by the measurment value).  Instead the measurement will be added in an extra <code>msg.interval</code> field.</p>
     <p><strong>Repeat timeout msg periodically:</strong><br/>
     When selected, the timout message will be repeated periodically (as long as the expected next input message doesn't arrive).</p>
     <p><strong>Allow measurements to be reset:</strong><br/>
