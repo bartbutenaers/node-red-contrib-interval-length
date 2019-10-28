@@ -47,14 +47,24 @@
                 default:
                     // TODO
             }
+         
+            console.log("************* START EXTRA LOGGING *************");
+            console.log("outputValue = " + outputValue);
+            console.log("node.msgField = " + node.msgField);
             
             // Normally the interval value will be put in the msg,payload (overwriting the original input msg.payload value).
             // But the user can explicitly require to put the interval value in another message field.
             try {
+                console.log("Now we will set the message property");
                 RED.util.setMessageProperty(msg, node.msgField, outputValue, true);
+                console.log("Now we have set the message property");
+                console.log("msg[" + node.msgField + "] = " + msg[node.msgField]);
             } catch(err) {
+                console.log("Something went wrong: " + err.message);
                 node.error("Error setting interval value in msg." + node.msgField + " : " + err.message);
             }
+         
+            console.log("************* STOP EXTRA LOGGING *************");
             
             // Normally the timestamp value will be put in the msg.timestamp (overwriting the original input msg.timestamp value, if available).
             // But the user can explicitly require to put the timestamp value in another message field.
