@@ -110,7 +110,10 @@
                 case "hours":
                     this.minimum *= 1000 * 60 * 60;
                     break;            
-                default: // "msecs" so no conversion needed
+                default: 
+                    // "msecs" so no conversion needed
+                    // See https://github.com/bartbutenaers/node-red-contrib-interval-length/issues/12
+                    this.minimum *= 1;
             }
         }
         
@@ -126,7 +129,10 @@
                 case "hours":
                     this.maximum *= 1000 * 60 * 60;
                     break;            
-                default: // "msecs" so no conversion needed
+                default: 
+                    // "msecs" so no conversion needed
+                    // See https://github.com/bartbutenaers/node-red-contrib-interval-length/issues/12
+                    this.maximum *= 1;
             }  
         }            
 
