@@ -152,7 +152,10 @@
                 case "hours":
                     this.window *= 1000 * 60 * 60;
                     break;            
-                default: // "msecs" so no conversion needed
+                default: 
+                    // "msecs" so no conversion needed
+                    // convert from String to Number
+                    this.window *= 1;
             }
         }
         
@@ -168,7 +171,10 @@
                 case "hours":
                     this.msgTimeout *= 1000 * 60 * 60;
                     break;            
-                default: // "msecs" so no conversion needed
+                default: 
+                    // "msecs" so no conversion needed
+                    // convert from String to Number
+                    this.msgTimeout *= 1;
             }
         }
         
